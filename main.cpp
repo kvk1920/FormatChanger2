@@ -4,7 +4,7 @@
 #include <windows.h>
 #include "son32/Son.h"
 
-#include "tinyfiledialogs/tinyfiledialogs.h"
+#include <tinyfiledialogs.h>
 
 #include <math.h>
 #include <stdbool.h>
