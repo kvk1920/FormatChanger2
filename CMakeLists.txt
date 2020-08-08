@@ -1,8 +1,17 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(FormatChanger2 LANGUAGES CXX)
+project(FormatChanger2)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 17)
 
-add_executable(FormatChanger2 main.cpp)
+add_executable(FormatChanger2
+    main.cpp
+    tinyfiledialogs/tinyfiledialogs.c)
+set_target_properties(FormatChanger2 PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32")
+target_link_libraries(FormatChanger2
+    "${PROJECT_SOURCE_DIR}/ADIDatIO/ADIDatIOWin.lib"
+    "${PROJECT_SOURCE_DIR}/son32/son32.lib"
+    )
+
+file(COPY "${PROJECT_SOURCE_DIR}/ADIDatIO/ADIDatIOWin.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${PROJECT_SOURCE_DIR}/son32/son32.dll" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
