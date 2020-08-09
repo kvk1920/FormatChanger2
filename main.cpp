@@ -2,9 +2,11 @@
 #include "ADIDatIO/ADIDatCAPI_mex.h"
 
 #include <windows.h>
-#include "son32/Son.h"
+#include <Son.h>
 
+extern "C" {
 #include <tinyfiledialogs.h>
+}
 
 #include <math.h>
 #include <stdbool.h>
