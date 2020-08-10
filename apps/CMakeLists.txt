@@ -1,2 +1,2 @@
-add_executable(FormatChanger2 main.cpp)
-target_link_libraries(FormatChanger2 PRIVATE TinyFileDialogs Son32 ADIDatIO)
+add_executable(FormatChanger2_Legacy main_legacy.cpp)
+target_link_libraries(FormatChanger2_Legacy PRIVATE TinyFileDialogs Son32 ADIDatIO)
