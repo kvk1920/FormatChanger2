@@ -35,4 +35,10 @@ void throw_exception(ADIResultCode code)
     throw std::runtime_error{"unknown ADDatIO error"};
 }
 
+void check_exception(ADIResultCode code)
+{
+    if (code != kResultSuccess)
+        throw_exception(code);
+}
+
 }
