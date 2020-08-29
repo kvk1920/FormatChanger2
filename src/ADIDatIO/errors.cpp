@@ -1,5 +1,4 @@
-#include <ADIDatIO/detail/errors.h>
-#include <ADIDatIO/detail/str_convert.h>
+#include "errors.hpp"
 
 #include <stdexcept>
 #include <vector>
@@ -11,34 +10,37 @@ namespace ADIDatIO::detail
 namespace
 {
 thread_local
-std::vector<wchar_t> buff;
+std::vector<wchar_t> g_buff;
 
-inline const wchar_t* get_error_message(ADIResultCode code)
+inline const wchar_t*
+getErrorMessage(ADIResultCode code)
 {
-    long sz;
-    if (kResultBufferTooSmall == ADI_GetErrorMessage(code, buff.data(), buff.size(), &sz))
+    long necessary_buffer_size;
+    if (kResultBufferTooSmall == ADI_GetErrorMessage(code, g_buff.data(), g_buff.size(), &necessary_buffer_size))
     {
-        buff.resize(sz + 1);
-        if (kResultSuccess != ADI_GetErrorMessage(code, buff.data(), buff.size(), &sz))
+        g_buff.resize(necessary_buffer_size + 1);
+        if (kResultSuccess != ADI_GetErrorMessage(code, g_buff.data(), g_buff.size(), &necessary_buffer_size))
             return nullptr;
     }
-    return buff.data();
+    return g_buff.data();
 }
+
 }
 
 
-[[noreturn]]
-void throw_exception(ADIResultCode code)
+[[noreturn]] void
+throwException(ADIResultCode code)
 {
-    if (auto msg{wcstring_to_cstring(get_error_message(code))}; msg != nullptr)
-        throw std::runtime_error{msg};
+    if (auto message{getErrorMessage(code)}; message != nullptr)
+        throw std::runtime_error{std::string(message, message + std::wcslen(message))};
     throw std::runtime_error{"unknown ADDatIO error"};
 }
 
-void check_exception(ADIResultCode code)
+void
+checkException(ADIResultCode code)
 {
     if (code != kResultSuccess)
-        throw_exception(code);
+        throwException(code);
 }
 
 }

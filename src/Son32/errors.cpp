@@ -1,4 +1,6 @@
-#include <Son32/detail/errors.h>
+#include <Son32/errors.hpp>
+#include <ctime>
+#include <windows.h>
 #include <Son.h>
 #include <stdexcept>
 
@@ -6,7 +8,7 @@ namespace Son32::detail
 {
 
 [[noreturn]] void
-throw_exception(long code)
+throwException(long code)
 {
     std::string msg;
     switch (code)
@@ -34,10 +36,10 @@ throw_exception(long code)
 }
 
 void
-check_exception(long code)
+checkException(long code)
 {
     if (code < 0)
-        throw_exception(code);
+        throwException(code);
 }
 
 }

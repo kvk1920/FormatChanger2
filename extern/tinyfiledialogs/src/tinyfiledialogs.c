@@ -619,7 +619,7 @@ static void RGB2HexW(
                         /* wprintf(L"aoResultHexRGB %s\n", aoResultHexRGB); */
                         swprintf(aoResultHexRGB,
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && ( !defined(__GNUC__) || (__GNUC__) >= 5 )
-                                8,
+                                 (const wchar_t*)8,
 #endif
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
@@ -1153,7 +1153,7 @@ wchar_t const * tinyfd_inputBoxW(
         {
 			swprintf(lDialogString,
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && ( !defined(__GNUC__) || (__GNUC__) >= 5 )
-                lDialogStringLen,
+                     (const wchar_t*) lDialogStringLen,
 #endif
                 L"%ls\\AppData\\Local\\Temp\\tinyfd.vbs", _wgetenv(L"USERPROFILE"));
         }
@@ -1161,7 +1161,7 @@ wchar_t const * tinyfd_inputBoxW(
         {
                 swprintf(lDialogString,
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && ( !defined(__GNUC__) || (__GNUC__) >= 5 )
-                        lDialogStringLen,
+                         (const wchar_t*)lDialogStringLen,
 #endif
                         L"%ls\\AppData\\Local\\Temp\\tinyfd.hta", _wgetenv(L"USERPROFILE"));
         }
@@ -1296,7 +1296,7 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
         {
                 swprintf(lDialogString,
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && ( !defined(__GNUC__) || (__GNUC__) >= 5 )
-                        lDialogStringLen,
+                         (const wchar_t*)lDialogStringLen,
 #endif
                         L"%ls\\AppData\\Local\\Temp\\tinyfd.txt",_wgetenv(L"USERPROFILE"));
 
@@ -1325,7 +1325,7 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
 
         swprintf(lDialogString,
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && ( !defined(__GNUC__) || (__GNUC__) >= 5 )
-                lDialogStringLen,
+                 (const wchar_t*)lDialogStringLen,
 #endif
 				L"%ls\\AppData\\Local\\Temp\\tinyfd.txt", _wgetenv(L"USERPROFILE"));
 		/* wprintf(L"lDialogString: %ls\n", lDialogString); */
@@ -1355,7 +1355,7 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
 		{
 			swprintf(lDialogString,
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && ( !defined(__GNUC__) || (__GNUC__) >= 5 )
-                        lDialogStringLen,
+                     (const wchar_t*)lDialogStringLen,
 #endif
                         L"%ls\\AppData\\Local\\Temp\\tinyfd.vbs",
                         _wgetenv(L"USERPROFILE"));
@@ -1364,7 +1364,7 @@ name = 'txt_input' value = '' style = 'float:left;width:100%' ><BR>\n\
         {
                 swprintf(lDialogString,
 #if !defined(__BORLANDC__) && !defined(__TINYC__) && ( !defined(__GNUC__) || (__GNUC__) >= 5 )
-                        lDialogStringLen,
+                         (const wchar_t*)lDialogStringLen,
 #endif
                         L"%ls\\AppData\\Local\\Temp\\tinyfd.hta",
                         _wgetenv(L"USERPROFILE"));
