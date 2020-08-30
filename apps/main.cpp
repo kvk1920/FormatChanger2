@@ -236,9 +236,7 @@ void transferChannels(const fs::path& input, const fs::path& output)
 
 }
 
-#include <fcntl.h>
 #include <io.h>
-#include <stdio.h>
 
 int main()
 {
