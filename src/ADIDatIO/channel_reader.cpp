@@ -43,6 +43,7 @@ ChannelReader::load(std::vector<float>& buff, std::size_t number_of_samples)
     current_pos_.sample_offset += number_of_samples;
     if (end_of_record)
         current_pos_.nextRecord();
+    refreshProgressBar();
     return true;
 }
 
@@ -56,6 +57,35 @@ const RecordInfo&
 ChannelReader::currentRecord() const
 {
     return channelInfo().records.at(current_pos_.record_id);
+}
+
+int64_t
+ChannelReader::calculateProcessedSamples(Position pos) const
+{
+    int64_t result{pos.sample_offset};
+    for (std::size_t record_id{0}; record_id < pos.record_id; ++record_id)
+        result += channelInfo().records[record_id].number_of_samples;
+    return result;
+}
+
+void
+ChannelReader::refreshProgressBar() const
+{
+    if (progress_bar_)
+    {
+        progress_bar_->setProgress(calculateProcessedSamples(current_pos_));
+        progress_bar_->show();
+    }
+}
+
+void
+ChannelReader::setProgressBar(kvk1920::utils::IProgressBar* progress_bar)
+{
+    progress_bar_ = progress_bar;
+    if (progress_bar)
+        progress_bar_->setMaxProgress(calculateProcessedSamples({
+            channelInfo().records.size(), 0
+        }), true);
 }
 
 }

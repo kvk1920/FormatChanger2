@@ -1,6 +1,7 @@
 #include <ADIDatIO/channel_reader.hpp>
 #include <Son32/file_writer.hpp>
 #include <tinyfiledialogs.h>
+#include <utils/console_progress_bar.hpp>
 
 #include <filesystem>
 #include <iostream>
@@ -9,6 +10,8 @@
 #include <vector>
 
 namespace fs = std::filesystem;
+
+using namespace kvk1920::utils;
 
 namespace
 {
@@ -166,9 +169,13 @@ void transferChannels(const fs::path& input, const fs::path& output)
         channel_config.units = info.units;
         channel_config.name = info.name;
         channel_config.sample_period = info.records[0].sample_period;
+        std::wcout << "calculating offset and scale for channel " << info.name << std::endl;
+        std::unique_ptr<IProgressBar> progress_bar{new ConsoleProgressBar(std::wcout)};
+        channels[channel_id].setProgressBar(progress_bar.get());
         channel_config.calculateScaleInfo([&](std::vector<float>& buff) -> bool {
             return channels[channel_id].load(buff, 1024);
         });
+        channels[channel_id].setProgressBar();
         channels[channel_id].reset();
     }
 
