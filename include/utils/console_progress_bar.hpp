@@ -37,6 +37,7 @@ protected:
     std::function<std::wstring(int64_t, int64_t)> create_msg_;
     int64_t progress_;
     int64_t max_progress_;
+    int last_shown_;
 };
 
 }

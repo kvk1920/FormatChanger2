@@ -11,6 +11,7 @@ ConsoleProgressBar::ConsoleProgressBar(std::wostream* wout, std::function<std::w
 {
     progress_ = 0;
     max_progress_ = 0;
+    last_shown_ = -1;
     *wout_ << std::endl;
 }
 
@@ -39,6 +40,7 @@ ConsoleProgressBar::ConsoleProgressBar(std::wostream* wout)
 , create_msg_{defaultMsg}
 {
     progress_ = max_progress_ = 0;
+    last_shown_ = -1;
 }
 
 ConsoleProgressBar::ConsoleProgressBar(std::wostream& wout)
@@ -57,6 +59,7 @@ ConsoleProgressBar::setMaxProgress(int64_t value, bool init) noexcept
     if (init)
     {
         progress_ = 0;
+        last_shown_ = -1;
         show();
     }
 }
@@ -73,7 +76,12 @@ ConsoleProgressBar::reportJob(int64_t add)
 void
 ConsoleProgressBar::show()
 {
-    *wout_ << L'\r' << create_msg_(progress_, max_progress_);
+    int64_t to_show{progress_ * LINE_LENGTH / max_progress_};
+    if (to_show != last_shown_)
+    {
+        *wout_ << L'\r' << create_msg_(progress_, max_progress_);
+        last_shown_ = to_show;
+    }
 }
 
 int64_t
