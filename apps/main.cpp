@@ -182,10 +182,14 @@ void transferChannels(const fs::path& input, const fs::path& output)
     std::size_t current_file_number{0};
 
     const auto get_file_number = [&current_file_number] {
-        std::wostringstream stream;
-        stream << current_file_number;
-        return stream.str();
+        std::string number{std::to_string(current_file_number)};
+        std::string result{std::string(3 - number.length(), '0') + number};
+        return std::wstring{result.begin(), result.end()};
     };
+
+    file_config.path = fs::current_path() /
+                       (output.filename().stem().wstring() + L"___" +
+                        get_file_number() + output.filename().extension().wstring());
 
     auto writer{Son32::FileWriter::create(file_config)};
     bool done{false};
@@ -198,7 +202,7 @@ void transferChannels(const fs::path& input, const fs::path& output)
             ++current_file_number;
             file_config.start = convert(channels[0].currentPosition().toTime(channels[0]));
             file_config.path = fs::current_path() /
-                    (output.filename().stem().wstring() + L"_part_" +
+                    (output.filename().stem().wstring() + L"___" +
                     get_file_number() + output.filename().extension().wstring());
             writer = Son32::FileWriter::create(file_config);
         }
@@ -218,6 +222,20 @@ void transferChannels(const fs::path& input, const fs::path& output)
             fs::rename(cur_input, cur_output);
         }
     };
+
+    std::wcout << "transfer all channels from " << input.filename() << " to " << output.filename() << std::endl;
+
+    std::unique_ptr<IProgressBar> transfer_pb{new ConsoleProgressBar(std::wcout)};
+
+    {
+        int64_t max_progress{0};
+        for (const auto& channel : reader->channelsInfo())
+            for (const auto& record : channel.records)
+                max_progress += record.number_of_samples;
+        transfer_pb->setMaxProgress(max_progress, true);
+    }
+
+    reader->setProgressBar(transfer_pb.get());
 
     while (!done)
     {
@@ -239,6 +257,7 @@ void transferChannels(const fs::path& input, const fs::path& output)
         flush_file();
     }
     flush_file(true);
+    reader->setProgressBar();
 }
 
 }

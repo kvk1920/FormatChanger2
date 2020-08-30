@@ -192,7 +192,8 @@ void
 FileReader::loadSlice(std::vector<float> &buff, std::size_t channel_id, std::size_t record_id, std::size_t start_pos,
                       std::size_t finish_pos) const
 {
-    return pimpl_->loadSlice(buff, channel_id, record_id, start_pos, finish_pos);
+    pimpl_->loadSlice(buff, channel_id, record_id, start_pos, finish_pos);
+    updateProgressBar(buff.size());
 }
 
 Time
@@ -211,6 +212,22 @@ std::shared_ptr<FileReader>
 FileReader::load(const fs::path &path)
 {
     return std::make_shared<MakeSharedEnabler>(path);
+}
+
+void
+FileReader::setProgressBar(kvk1920::utils::IProgressBar* pb)
+{
+    progress_bar_ = pb;
+}
+
+void
+FileReader::updateProgressBar(int64_t number_of_read_samples) const
+{
+    if (progress_bar_)
+    {
+        progress_bar_->reportJob(number_of_read_samples);
+        progress_bar_->show();
+    }
 }
 
 }
