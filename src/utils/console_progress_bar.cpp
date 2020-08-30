@@ -73,7 +73,7 @@ ConsoleProgressBar::reportJob(int64_t add)
 void
 ConsoleProgressBar::show()
 {
-    *wout_ << L'\r' << create_msg_(progress_, max_progress_) << std::flush;
+    *wout_ << L'\r' << create_msg_(progress_, max_progress_);
 }
 
 int64_t
