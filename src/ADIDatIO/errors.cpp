@@ -9,20 +9,19 @@ namespace ADIDatIO::detail
 
 namespace
 {
-thread_local
-std::vector<wchar_t> g_buff;
 
-inline const wchar_t*
+inline std::wstring
 getErrorMessage(ADIResultCode code)
 {
+    std::vector<wchar_t> buff;
     long necessary_buffer_size;
-    if (kResultBufferTooSmall == ADI_GetErrorMessage(code, g_buff.data(), g_buff.size(), &necessary_buffer_size))
+    if (kResultBufferTooSmall == ADI_GetErrorMessage(code, buff.data(), buff.size(), &necessary_buffer_size))
     {
-        g_buff.resize(necessary_buffer_size + 1);
-        if (kResultSuccess != ADI_GetErrorMessage(code, g_buff.data(), g_buff.size(), &necessary_buffer_size))
-            return nullptr;
+        buff.resize(necessary_buffer_size + 1);
+        if (kResultSuccess != ADI_GetErrorMessage(code, buff.data(), buff.size(), &necessary_buffer_size))
+            return L"";
     }
-    return g_buff.data();
+    return buff.data();
 }
 
 }
@@ -31,15 +30,18 @@ getErrorMessage(ADIResultCode code)
 [[noreturn]] void
 throwException(ADIResultCode code)
 {
-    if (auto message{getErrorMessage(code)}; message != nullptr)
-        throw std::runtime_error{std::string(message, message + std::wcslen(message))};
+    if (auto message{getErrorMessage(code)}; !message.empty())
+    {
+        auto t{std::string(message.begin(), message.end())};
+        throw std::runtime_error{std::move(t)};
+    }
     throw std::runtime_error{"unknown ADDatIO error"};
 }
 
 void
 checkException(ADIResultCode code)
 {
-    if (code != kResultSuccess)
+    if (code & ADIResultCode::kResultErrorFlagBit)
         throwException(code);
 }
 
