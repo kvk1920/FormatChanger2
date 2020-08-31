@@ -12,12 +12,13 @@ public:
 
 
     template <typename ...Args>
-    IOutputStream& write(const Args& ...args)
+    IOutputStream& write(Args&& ...args)
     {
-        (writeBuf(args), ...);
+        (writeBuf(std::forward<Args>(args)), ...);
         flush();
         return *this;
     }
+
 protected:
     virtual void writeImpl(const std::wstring& s) = 0;
 
@@ -27,23 +28,34 @@ protected:
         buff_ << value;
     }
 
+    virtual void flushImpl() = 0;
+
     void flush()
     {
         writeImpl(buff_.str());
         buff_.str(L"");
+        flushImpl();
     }
 private:
     std::wostringstream buff_;
 };
 
-class StdOutputStream final : IOutputStream
+class StdOutputStream final : public IOutputStream
 {
 public:
     explicit StdOutputStream(std::wostream* out) : out_{out} {}
+
+protected:
+
 protected:
     void writeImpl(const std::wstring& s) final
     {
         *out_ << s;
+    }
+
+    void flushImpl() final
+    {
+        out_->flush();
     }
 private:
     std::wostream* out_;

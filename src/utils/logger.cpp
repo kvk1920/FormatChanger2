@@ -13,7 +13,13 @@ Logger::writeImpl(const std::wstring& s)
 {
     const auto now{std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())};
     *out_ << "[ " << std::ctime(&now) << "]\t";
-    *out_ << s << std::endl;
+    *out_ << s;
+}
+
+void
+Logger::flushImpl()
+{
+    out_->flush();
 }
 
 }

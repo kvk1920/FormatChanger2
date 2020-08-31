@@ -12,6 +12,7 @@ public:
 
 protected:
     void writeImpl(const std::wstring& s) override;
+    void flushImpl() override;
 
 private:
     std::wostream* out_;

@@ -22,6 +22,8 @@ protected:
         for (auto out : outs_)
             out->write(s);
     }
+
+    void flushImpl() final {}
 private:
     std::vector<IOutputStream*> outs_;
 };
