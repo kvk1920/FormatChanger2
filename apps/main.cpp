@@ -214,12 +214,29 @@ void transferChannels(const fs::path& input, const fs::path& output)
         const auto expected_size{writer->expectedSize()};
         if (force || expected_size >= size_limit)
         {
-            const auto cur_input{writer->path()};
-            const auto cur_output{output.parent_path() / file_config.path.filename()};
+            const auto source{writer->path()};
+            const auto destination{output.parent_path() / file_config.path.filename()};
             writer.reset();
-            if (fs::exists(cur_output))
-                fs::remove(cur_output);
-            fs::rename(cur_input, cur_output);
+            if (source != destination)
+            {
+                if (fs::exists(destination))
+                {
+                    std::wstring text{
+                        L"Файл " + destination.wstring() + L" уже существует. Заменить его?"
+                    };
+                    if (tinyfd_messageBoxW(L"FormatChanger2",
+                                           text.c_str(),
+                                           L"yesno", L"question", 0))
+                    {
+                        fs::remove(destination);
+                        fs::rename(source, destination);
+                    }
+                }
+                else
+                {
+                    fs::rename(source, destination);
+                }
+            }
         }
     };
 
@@ -297,5 +314,5 @@ int main()
             std::wcout << "unknown error" << std::endl;
         }
     }
-    system("pause");
+    tinyfd_messageBoxW(L"FormatChanger2", L"Процесс завершён", L"ok", L"info", 0);
 }
