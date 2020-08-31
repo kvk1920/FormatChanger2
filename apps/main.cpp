@@ -3,8 +3,12 @@
 #include <tinyfiledialogs.h>
 #include <utils/console_progress_bar.hpp>
 
+#include <utils/logger.hpp>
+#include <utils/ostream_tee.hpp>
+
 #include <filesystem>
 #include <iostream>
+#include <fstream>
 #include <numeric>
 #include <string>
 #include <vector>
@@ -73,11 +77,8 @@ std::vector<fs::path> getPathsFromDialog(ChooseMode mode, const fs::path& defaul
             )};
             if (nullptr == ptr)
                 return {};
-            //std::wcout << "processing dir:" << std::endl << ptr << std::endl;
             for (const auto& file : fs::directory_iterator(ptr))
             {
-                //std::wcout << "found entry:" << std::endl << file.path().wstring() << std::endl;
-                //std::wstring cur{file.path()};
                 if (L".adicht" != file.path().extension())
                     continue;
                 if (!paths.empty())
@@ -135,14 +136,10 @@ Son32::Time convert(const ADIDatIO::Time& t)
     return {t.seconds, t.frac_seconds};
 }
 
-void transferChannels(const fs::path& input, const fs::path& output)
+void transferChannels(const fs::path& input, const fs::path& output, IOutputStream& log)
 {
-    std::wcout
-    << "transfer from:" << std::endl
-    << input.wstring() << std::endl;
-    std::wcout
-    << "transfer to:" << std::endl
-    << output.wstring() << std::endl;
+    log.write("transfer from:\n", input.wstring(), '\n');
+    log.write("transfer to:\n", output.wstring(), '\n');
     auto reader{ADIDatIO::FileReader::load(input)};
     const auto number_of_channels{reader->channelsInfo().size()};
 
@@ -157,9 +154,6 @@ void transferChannels(const fs::path& input, const fs::path& output)
 
     Son32::Config file_config;
     file_config.start = convert(reader->fileStart());
-    /*std::wcout
-    << fs::current_path() << std::endl
-    << output.filename().wstring() << std::endl;*/
     file_config.path = fs::current_path() / output.filename();
     file_config.channels.resize(number_of_channels);
     for (std::size_t channel_id{0}; channel_id < number_of_channels; ++channel_id)
@@ -169,7 +163,7 @@ void transferChannels(const fs::path& input, const fs::path& output)
         channel_config.units = info.units;
         channel_config.name = info.name;
         channel_config.sample_period = info.records[0].sample_period;
-        std::wcout << "calculating offset and scale for channel " << info.name << std::endl;
+        log.write("calculating offset and scale for channel ", info.name, '\n');
         std::unique_ptr<IProgressBar> progress_bar{new ConsoleProgressBar(std::wcout)};
         channels[channel_id].setProgressBar(progress_bar.get());
         channel_config.calculateScaleInfo([&](std::vector<float>& buff) -> bool {
@@ -223,7 +217,7 @@ void transferChannels(const fs::path& input, const fs::path& output)
         }
     };
 
-    std::wcout << "transfer all channels from " << input.filename() << " to " << output.filename() << std::endl;
+   log.write("transfer all channels from ", input.filename(), " to ", output.filename(), '\n');
 
     std::unique_ptr<IProgressBar> transfer_pb{new ConsoleProgressBar(std::wcout)};
 
@@ -258,6 +252,7 @@ void transferChannels(const fs::path& input, const fs::path& output)
     }
     flush_file(true);
     reader->setProgressBar();
+    log.write("all channel successful transferred\n");
 }
 
 }
@@ -268,33 +263,38 @@ int main()
 {
     // setmode(U16TEXT)
     _setmode(_fileno(stdout), 0x00020000);
+    std::wofstream fout("log.txt");
+    Logger log_file(&fout);
+    StdOutputStream out(&std::wcout);
+    OutputStreamTee log;
+    log.addStream(&log_file).addStream(&out);
+
     const auto input_files{getPathsFromDialog(getChooseMode(), fs::current_path())};
     if (input_files.empty())
     {
-        std::wcout << "No files chosen" << std::endl;
+        log.write("No files chosen\n");
         return 0;
     }
-    std::wcout << "input directory: " << input_files.at(0).parent_path() << std::endl;
+    log.write("input directory: ", input_files.at(0).parent_path(), '\n');
     for (const auto& input_file : input_files)
-        std::wcout << input_file.filename() << std::endl;
+        log.write(input_file.filename(), '\n');
     const auto result_dir{getResultDirectory(input_files.at(0).parent_path())};
     for (const auto& input_file : input_files)
     {
-        std::wcout << "processing file: " << input_file.filename() << std::endl;
+        log.write("processing file: ", input_file.filename(), '\n');
         try
         {
             auto output_file{result_dir / input_file.filename()};
             output_file.replace_extension(L".SMR");
-            transferChannels(input_file, output_file);
+            transferChannels(input_file, output_file, log);
         }
         catch (std::exception& ex)
         {
-            std::wcout << "error:" << std::endl;
-            std::wcout << ex.what() << std::endl;
+            log.write("error:\n", ex.what(), '\n');
         }
         catch (...)
         {
-            std::wcout << "unknown error" << std::endl;
+            log.write("unknown error\n");
         }
     }
     system("pause");
