@@ -7,7 +7,7 @@ set(ADIDatIO_SOURCES
 	"${PROJECT_SOURCE_DIR}/src/Son32/errors.cpp"
 	"${PROJECT_SOURCE_DIR}/src/Son32/file_writer.cpp"
 
-		str.hpp)
+		str.cpp)
 add_library(Son32_facade STATIC ${ADIDatIO_SOURCES} ${ADIDatIO_HEADERS})
 target_include_directories(Son32_facade PUBLIC "${PROJECT_SOURCE_DIR}/include/")
 target_include_directories(Son32_facade PRIVATE "${PROJECT_SOURCE_DIR}/src/")
