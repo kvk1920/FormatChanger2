@@ -269,7 +269,7 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
     }
     flush_file(true);
     reader->setProgressBar();
-    log.write("all channel successful transferred\n");
+    log.write("\nall channel successful transferred\n");
 }
 
 }
