@@ -1,17 +1,18 @@
 #pragma once
 
-#include <ostream>
+#include <utils/output_stream.hpp>
 
 namespace kvk1920::utils
 {
 
-class Logger : public std::wostream
+class Logger : public IOutputStream
 {
 public:
-    class LoggerWrapper : public std::wostream
-    {
+    explicit Logger(std::wostream* out);
 
-    };
+protected:
+    void writeImpl(const std::wstring& s) override;
+
 private:
     std::wostream* out_;
 };
