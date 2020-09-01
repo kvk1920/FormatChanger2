@@ -136,11 +136,21 @@ Son32::Time convert(const ADIDatIO::Time& t)
     return {t.seconds, t.frac_seconds};
 }
 
-void transferChannels(const fs::path& input, const fs::path& output, IOutputStream& log)
+void transferChannels(const fs::path& input_file, const fs::path& output_directory, IOutputStream& log)
 {
-    log.write("transfer from:\n", input.wstring(), '\n');
-    log.write("transfer to:\n", output.wstring(), '\n');
-    auto reader{ADIDatIO::FileReader::load(input)};
+    log.write("transfer from:\n", input_file.wstring(), '\n');
+    log.write("transfer to:\n", output_directory.wstring(), '\n');
+
+    {
+        std::error_code error;
+        if (fs::exists(output_directory))
+            if (!fs::remove_all(output_directory, error))
+                throw std::system_error(error);
+        if (!fs::create_directory(output_directory, error))
+            throw std::system_error(error);
+    }
+
+    auto reader{ADIDatIO::FileReader::load(input_file)};
     const auto number_of_channels{reader->channelsInfo().size()};
 
     std::vector<ADIDatIO::ChannelReader> channels;
@@ -154,7 +164,6 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
 
     Son32::Config file_config;
     file_config.start = convert(reader->fileStart());
-    file_config.path = fs::current_path() / output.filename();
     file_config.channels.resize(number_of_channels);
     for (std::size_t channel_id{0}; channel_id < number_of_channels; ++channel_id)
     {
@@ -182,8 +191,8 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
     };
 
     file_config.path = fs::current_path() /
-                       (output.filename().stem().wstring() + L"___" +
-                        get_file_number() + output.filename().extension().wstring());
+                       (input_file.filename().stem().wstring() + L"___" +
+                        get_file_number() + input_file.filename().extension().wstring());
 
     auto writer{Son32::FileWriter::create(file_config)};
     bool done{false};
@@ -196,8 +205,8 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
             ++current_file_number;
             file_config.start = convert(channels[0].currentPosition().toTime(channels[0]));
             file_config.path = fs::current_path() /
-                    (output.filename().stem().wstring() + L"___" +
-                    get_file_number() + output.filename().extension().wstring());
+                               (input_file.filename().stem().wstring() + L"___" +
+                                get_file_number() + input_file.filename().extension().wstring());
             writer = Son32::FileWriter::create(file_config);
         }
     };
@@ -209,7 +218,8 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
         if (force || expected_size >= size_limit)
         {
             const auto source{writer->path()};
-            const auto destination{output.parent_path() / file_config.path.filename()};
+            auto destination{output_directory / file_config.path.filename()};
+            destination.replace_extension(L".SMR");
             writer.reset();
             if (source != destination)
             {
@@ -234,7 +244,7 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
         }
     };
 
-   log.write("transfer all channels from ", input.filename(), " to ", output.filename(), '\n');
+   log.write("transfer all channels from ", input_file.filename(), " to ", output_directory, '\n');
 
     std::unique_ptr<IProgressBar> transfer_pb{new ConsoleProgressBar(std::wcout)};
 
@@ -272,6 +282,103 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
     log.write("\nall channel successful transferred\n");
 }
 
+fs::path createOutputDirectory(fs::path result_dir, const fs::path& input)
+{
+    result_dir /= input.filename().stem();
+    return result_dir;
+}
+
+struct ReplaceInfo
+{
+    fs::path input;
+    fs::path output;
+    bool need_replace;
+};
+
+std::vector<ReplaceInfo> checkOutputDirectory(const std::vector<fs::path>& input, const std::vector<fs::path>& output)
+{
+    std::size_t n{output.size()};
+    std::vector<ReplaceInfo> result;
+    bool first_time{true};
+    for (std::size_t i{0}; i < input.size(); ++i)
+        result.push_back({input[i], output[i], fs::exists(output.at(i))});
+    return result;
+}
+
+std::vector<std::pair<fs::path, fs::path>> createConversionList(const std::vector<ReplaceInfo>& replace_info, IOutputStream& logger)
+{
+    enum class ReplacementPolicy
+    {
+        ReplaceAll,
+        NoReplace,
+        Undefined,
+    };
+    ReplacementPolicy replacement_policy{ReplacementPolicy::Undefined};
+    if (std::any_of(replace_info.begin(), replace_info.end(), [](const ReplaceInfo& info) { return info.need_replace; }))
+    {
+        int code{tinyfd_messageBoxW(
+                L"FormatChanger2",
+                L"Один или несколько файлов уже существуют в директории назначения.\n"
+                L"Хотите ли вы заменить их все?",
+                L"yesno",
+                L"question",
+                0
+                )};
+        if (code)
+            replacement_policy = ReplacementPolicy::ReplaceAll;
+        else
+        {
+            code = tinyfd_messageBoxW(
+                    L"FormatChanger",
+                    L"Хотите ли вы ничего не заменять?\nЕсли нет, то каждый случай будет рассмотрен отдельно.",
+                    L"yesno",
+                    L"question",
+                    0
+                    );
+            if (code)
+                replacement_policy = ReplacementPolicy::NoReplace;
+        }
+    }
+    std::vector<std::pair<fs::path, fs::path>> result;
+    result.reserve(replace_info.size());
+    for (const auto& info : replace_info)
+    {
+        if (!info.need_replace)
+        {
+            result.emplace_back(info.input, info.output);
+            continue;
+        }
+        if (replacement_policy != ReplacementPolicy::Undefined)
+        {
+            if (ReplacementPolicy::ReplaceAll == replacement_policy)
+            {
+                logger.write(info.output, L" будет удалена вместе со всем содержимым\n");
+                result.emplace_back(info.input, info.output);
+            }
+            continue;
+        }
+        bool is_directory{fs::is_directory(info.output)};
+        std::wstring msg{is_directory ? L"Директория\n" : L"Файл\n"};
+        msg.append(info.output);
+        msg.append(L"\nуже существует. Хотите заменить ");
+        msg.append(is_directory ? L"её " : L"его ");
+        msg.append(L"со всем содержимым?");
+        int code{tinyfd_messageBoxW(
+                L"FormatChanger2",
+                msg.c_str(),
+                L"yesno",
+                L"question",
+                0
+                )};
+        if (code)
+        {
+            logger.write(info.output, L" будет удалена вместе со всем содержимым\n");
+            result.emplace_back(info.input, info.output);
+        }
+    }
+    return result;
+}
+
 }
 
 #include <io.h>
@@ -296,14 +403,18 @@ int main()
     for (const auto& input_file : input_files)
         log.write(input_file.filename(), '\n');
     const auto result_dir{getResultDirectory(input_files.at(0).parent_path())};
-    for (const auto& input_file : input_files)
+
+    std::vector<fs::path> output_directories(input_files.size());
+    for (std::size_t i{0}; i < input_files.size(); ++i)
+        output_directories[i] = createOutputDirectory(result_dir, input_files[i]);
+    auto conversion_info{createConversionList(checkOutputDirectory(input_files, output_directories), log)};
+
+    for (const auto& files : conversion_info)
     {
-        log.write("processing file: ", input_file.filename(), '\n');
+        log.write("processing file: ", files.first.filename(), '\n');
         try
         {
-            auto output_file{result_dir / input_file.filename()};
-            output_file.replace_extension(L".SMR");
-            transferChannels(input_file, output_file, log);
+            transferChannels(files.first, files.second, log);
         }
         catch (std::exception& ex)
         {
