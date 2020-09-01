@@ -76,7 +76,7 @@ ConsoleProgressBar::reportJob(int64_t add)
 void
 ConsoleProgressBar::show()
 {
-    int64_t to_show{progress_ * LINE_LENGTH / max_progress_};
+    int64_t to_show{progress_ * 100 / max_progress_};
     if (to_show != last_shown_)
     {
         *wout_ << L'\r' << create_msg_(progress_, max_progress_);
