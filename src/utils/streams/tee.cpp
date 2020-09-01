@@ -39,4 +39,15 @@ TeeBuf::addBuffer(std::wstreambuf* buff)
     return *this;
 }
 
+TeeStream::TeeStream()
+: std::wostream(&tee_buf_)
+{}
+
+TeeStream&
+TeeStream::addStream(std::wostream& stream)
+{
+    tee_buf_.addBuffer(stream.rdbuf());
+    return *this;
+}
+
 }
