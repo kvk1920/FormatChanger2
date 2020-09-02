@@ -19,14 +19,4 @@ private:
     std::vector<std::wstreambuf*> buffers_;
 };
 
-class TeeStream final : public std::wostream
-{
-public:
-    TeeStream();
-
-    TeeStream& addStream(std::wostream& stream);
-private:
-    TeeBuf tee_buf_;
-};
-
 }

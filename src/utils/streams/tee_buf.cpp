@@ -1,4 +1,4 @@
-#include <utils/streams/tee.hpp>
+#include <utils/streams/tee_buf.hpp>
 
 namespace kvk1920::utils
 {
@@ -36,17 +36,6 @@ TeeBuf&
 TeeBuf::addBuffer(std::wstreambuf* buff)
 {
     buffers_.push_back(buff);
-    return *this;
-}
-
-TeeStream::TeeStream()
-: std::wostream(&tee_buf_)
-{}
-
-TeeStream&
-TeeStream::addStream(std::wostream& stream)
-{
-    tee_buf_.addBuffer(stream.rdbuf());
     return *this;
 }
 
