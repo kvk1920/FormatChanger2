@@ -3,8 +3,8 @@
 #include <tinyfiledialogs.h>
 #include <utils/console_progress_bar.hpp>
 
-#include <utils/logger.hpp>
-#include <utils/ostream_tee.hpp>
+#include <utils/streams/log_stream.hpp>
+#include <utils/streams/tee_stream.hpp>
 
 #include <filesystem>
 #include <iostream>
@@ -97,14 +97,14 @@ std::vector<fs::path> getPathsFromDialog(ChooseMode mode, const fs::path& defaul
 fs::path getResultDirectory(const fs::path& default_path)
 {
     std::wstring message{
-        L"Сохранить в директорию " + default_path.wstring() +
-        L"\nЕсли ничего не выбрать, то будет выбрана директория"
-        "с исходными файлами"
+            L"Сохранить в директорию " + default_path.wstring() +
+            L"\nЕсли ничего не выбрать, то будет выбрана директория"
+            "с исходными файлами"
     };
     const wchar_t* path_to_save{tinyfd_selectFolderDialogW(
             message.c_str(),
             default_path.wstring().c_str()
-            )};
+    )};
     if (nullptr == path_to_save)
         return default_path;
     return path_to_save;
@@ -136,11 +136,10 @@ Son32::Time convert(const ADIDatIO::Time& t)
     return {t.seconds, t.frac_seconds};
 }
 
-void transferChannels(const fs::path& input_file, const fs::path& output_directory, IOutputStream& log)
+void transferChannels(const fs::path& input_file, const fs::path& output_directory, std::wostream& log)
 {
-    log.write("transfer from:\n", input_file.wstring(), '\n');
-    log.write("transfer to:\n", output_directory.wstring(), '\n');
-
+    log << "transfer from:\n" << input_file.wstring() << std::endl;
+    log << "transfer to:\n" << output_directory.wstring() << std::endl;
     {
         std::error_code error;
         if (fs::exists(output_directory))
@@ -172,7 +171,7 @@ void transferChannels(const fs::path& input_file, const fs::path& output_directo
         channel_config.units = info.units;
         channel_config.name = info.name;
         channel_config.sample_period = info.records[0].sample_period;
-        log.write("calculating offset and scale for channel ", info.name, '\n');
+        log << "calculating offset and scale for channel " << info.name << std::endl;
         std::unique_ptr<IProgressBar> progress_bar{new ConsoleProgressBar(std::wcout)};
         channels[channel_id].setProgressBar(progress_bar.get());
         channel_config.calculateScaleInfo([&](std::vector<float>& buff) -> bool {
@@ -226,7 +225,7 @@ void transferChannels(const fs::path& input_file, const fs::path& output_directo
                 if (fs::exists(destination))
                 {
                     std::wstring text{
-                        L"Файл " + destination.wstring() + L" уже существует. Заменить его?"
+                            L"Файл " + destination.wstring() + L" уже существует. Заменить его?"
                     };
                     if (tinyfd_messageBoxW(L"FormatChanger2",
                                            text.c_str(),
@@ -244,7 +243,7 @@ void transferChannels(const fs::path& input_file, const fs::path& output_directo
         }
     };
 
-   log.write("transfer all channels from ", input_file.filename(), " to ", output_directory, '\n');
+    log << "transfer all channels from " << input_file.filename() << " to " << output_directory << std::endl;
 
     std::unique_ptr<IProgressBar> transfer_pb{new ConsoleProgressBar(std::wcout)};
 
@@ -279,7 +278,13 @@ void transferChannels(const fs::path& input_file, const fs::path& output_directo
     }
     flush_file(true);
     reader->setProgressBar();
-    log.write("\nall channel successful transferred\n");
+    log << "\nall channel successfully transferred" << std::endl;
+}
+
+int exitMessage()
+{
+    tinyfd_messageBoxW(L"FormatChanger2", L"Процесс завершён", L"ok", L"info", 0);
+    return 0;
 }
 
 fs::path createOutputDirectory(fs::path result_dir, const fs::path& input)
@@ -299,13 +304,12 @@ std::vector<ReplaceInfo> checkOutputDirectory(const std::vector<fs::path>& input
 {
     std::size_t n{output.size()};
     std::vector<ReplaceInfo> result;
-    bool first_time{true};
     for (std::size_t i{0}; i < input.size(); ++i)
         result.push_back({input[i], output[i], fs::exists(output.at(i))});
     return result;
 }
 
-std::vector<std::pair<fs::path, fs::path>> createConversionList(const std::vector<ReplaceInfo>& replace_info, IOutputStream& logger)
+std::vector<std::pair<fs::path, fs::path>> createConversionList(const std::vector<ReplaceInfo>& replace_info, std::wostream& logger)
 {
     enum class ReplacementPolicy
     {
@@ -323,7 +327,7 @@ std::vector<std::pair<fs::path, fs::path>> createConversionList(const std::vecto
                 L"yesno",
                 L"question",
                 0
-                )};
+        )};
         if (code)
             replacement_policy = ReplacementPolicy::ReplaceAll;
         else
@@ -334,7 +338,7 @@ std::vector<std::pair<fs::path, fs::path>> createConversionList(const std::vecto
                     L"yesno",
                     L"question",
                     0
-                    );
+            );
             if (code)
                 replacement_policy = ReplacementPolicy::NoReplace;
         }
@@ -352,7 +356,7 @@ std::vector<std::pair<fs::path, fs::path>> createConversionList(const std::vecto
         {
             if (ReplacementPolicy::ReplaceAll == replacement_policy)
             {
-                logger.write(info.output, L" будет удалена вместе со всем содержимым\n");
+                logger << info.output << L" будет удалена вместе со всем содержимым" << std::endl;
                 result.emplace_back(info.input, info.output);
             }
             continue;
@@ -369,10 +373,10 @@ std::vector<std::pair<fs::path, fs::path>> createConversionList(const std::vecto
                 L"yesno",
                 L"question",
                 0
-                )};
+        )};
         if (code)
         {
-            logger.write(info.output, L" будет удалена вместе со всем содержимым\n");
+            logger << info.output << L" будет удалена вместе со всем содержимым" << std::endl;
             result.emplace_back(info.input, info.output);
         }
     }
@@ -386,22 +390,22 @@ std::vector<std::pair<fs::path, fs::path>> createConversionList(const std::vecto
 int main()
 {
     // setmode(U16TEXT)
-    _setmode(_fileno(stdout), 0x00020000);
-    std::wofstream fout("log.txt");
-    Logger log_file(&fout);
-    StdOutputStream out(&std::wcout);
-    OutputStreamTee log;
-    log.addStream(&log_file).addStream(&out);
+    setlocale(LC_ALL, "");
+    std::wofstream log_file;
+    log_file.open(L"log.txt", std::ios::out);
+    LogStream log_stream(log_file);
+    TeeStream log;
+    log.addStream(log_stream).addStream(std::wcout);
 
     const auto input_files{getPathsFromDialog(getChooseMode(), fs::current_path())};
     if (input_files.empty())
     {
-        log.write("No files chosen\n");
-        return 0;
+        log << "No files chosen" << std::endl;
+        return exitMessage();
     }
-    log.write("input directory: ", input_files.at(0).parent_path(), '\n');
+    log << "input directory: " << input_files.at(0).parent_path() << std::endl;
     for (const auto& input_file : input_files)
-        log.write(input_file.filename(), '\n');
+        log << input_file.filename() << std::endl;
     const auto result_dir{getResultDirectory(input_files.at(0).parent_path())};
 
     std::vector<fs::path> output_directories(input_files.size());
@@ -411,18 +415,18 @@ int main()
 
     for (const auto& files : conversion_info)
     {
-        log.write("processing file: ", files.first.filename(), '\n');
+        log << "processing file: " << files.first.filename() << std::endl;
         try
         {
             transferChannels(files.first, files.second, log);
         }
         catch (std::exception& ex)
         {
-            log.write("error:\n", ex.what(), '\n');
+            log << "error:\n" << ex.what() << std::endl;
         }
         catch (...)
         {
-            log.write("unknown error\n");
+            log << "unknown error" << std::endl;
         }
     }
     tinyfd_messageBoxW(L"FormatChanger2", L"Процесс завершён", L"ok", L"info", 0);
