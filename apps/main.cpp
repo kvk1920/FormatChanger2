@@ -3,9 +3,6 @@
 #include <tinyfiledialogs.h>
 #include <utils/console_progress_bar.hpp>
 
-#include <utils/logger.hpp>
-#include <utils/ostream_tee.hpp>
-
 #include <utils/streams/log_stream.hpp>
 #include <utils/streams/tee_stream.hpp>
 
@@ -100,14 +97,14 @@ std::vector<fs::path> getPathsFromDialog(ChooseMode mode, const fs::path& defaul
 fs::path getResultDirectory(const fs::path& default_path)
 {
     std::wstring message{
-        L"Сохранить в директорию " + default_path.wstring() +
-        L"\nЕсли ничего не выбрать, то будет выбрана директория"
-        "с исходными файлами"
+            L"Сохранить в директорию " + default_path.wstring() +
+            L"\nЕсли ничего не выбрать, то будет выбрана директория"
+            "с исходными файлами"
     };
     const wchar_t* path_to_save{tinyfd_selectFolderDialogW(
             message.c_str(),
             default_path.wstring().c_str()
-            )};
+    )};
     if (nullptr == path_to_save)
         return default_path;
     return path_to_save;
@@ -139,11 +136,20 @@ Son32::Time convert(const ADIDatIO::Time& t)
     return {t.seconds, t.frac_seconds};
 }
 
-void transferChannels(const fs::path& input, const fs::path& output, std::wostream& log)
+void transferChannels(const fs::path& input_file, const fs::path& output_directory, std::wostream& log)
 {
-    log << "transfer from:\n" << input.wstring() << std::endl;
-    log << "transfer to:\n" << output.wstring() << std::endl;
-    auto reader{ADIDatIO::FileReader::load(input)};
+    log << "transfer from:\n" << input_file.wstring() << std::endl;
+    log << "transfer to:\n" << output_directory.wstring() << std::endl;
+    {
+        std::error_code error;
+        if (fs::exists(output_directory))
+            if (!fs::remove_all(output_directory, error))
+                throw std::system_error(error);
+        if (!fs::create_directory(output_directory, error))
+            throw std::system_error(error);
+    }
+
+    auto reader{ADIDatIO::FileReader::load(input_file)};
     const auto number_of_channels{reader->channelsInfo().size()};
 
     std::vector<ADIDatIO::ChannelReader> channels;
@@ -157,7 +163,6 @@ void transferChannels(const fs::path& input, const fs::path& output, std::wostre
 
     Son32::Config file_config;
     file_config.start = convert(reader->fileStart());
-    file_config.path = fs::current_path() / output.filename();
     file_config.channels.resize(number_of_channels);
     for (std::size_t channel_id{0}; channel_id < number_of_channels; ++channel_id)
     {
@@ -185,8 +190,8 @@ void transferChannels(const fs::path& input, const fs::path& output, std::wostre
     };
 
     file_config.path = fs::current_path() /
-                       (output.filename().stem().wstring() + L"___" +
-                        get_file_number() + output.filename().extension().wstring());
+                       (input_file.filename().stem().wstring() + L"___" +
+                        get_file_number() + input_file.filename().extension().wstring());
 
     auto writer{Son32::FileWriter::create(file_config)};
     bool done{false};
@@ -199,8 +204,8 @@ void transferChannels(const fs::path& input, const fs::path& output, std::wostre
             ++current_file_number;
             file_config.start = convert(channels[0].currentPosition().toTime(channels[0]));
             file_config.path = fs::current_path() /
-                    (output.filename().stem().wstring() + L"___" +
-                    get_file_number() + output.filename().extension().wstring());
+                               (input_file.filename().stem().wstring() + L"___" +
+                                get_file_number() + input_file.filename().extension().wstring());
             writer = Son32::FileWriter::create(file_config);
         }
     };
@@ -212,14 +217,15 @@ void transferChannels(const fs::path& input, const fs::path& output, std::wostre
         if (force || expected_size >= size_limit)
         {
             const auto source{writer->path()};
-            const auto destination{output.parent_path() / file_config.path.filename()};
+            auto destination{output_directory / file_config.path.filename()};
+            destination.replace_extension(L".SMR");
             writer.reset();
             if (source != destination)
             {
                 if (fs::exists(destination))
                 {
                     std::wstring text{
-                        L"Файл " + destination.wstring() + L" уже существует. Заменить его?"
+                            L"Файл " + destination.wstring() + L" уже существует. Заменить его?"
                     };
                     if (tinyfd_messageBoxW(L"FormatChanger2",
                                            text.c_str(),
@@ -237,7 +243,7 @@ void transferChannels(const fs::path& input, const fs::path& output, std::wostre
         }
     };
 
-   log << "transfer all channels from " << input.filename() << " to " << output.filename() << std::endl;
+    log << "transfer all channels from " << input_file.filename() << " to " << output_directory << std::endl;
 
     std::unique_ptr<IProgressBar> transfer_pb{new ConsoleProgressBar(std::wcout)};
 
@@ -272,13 +278,109 @@ void transferChannels(const fs::path& input, const fs::path& output, std::wostre
     }
     flush_file(true);
     reader->setProgressBar();
-    log << "\nall channel successful transferred" << std::endl;
+    log << "\nall channel successfully transferred" << std::endl;
 }
 
 int exitMessage()
 {
     tinyfd_messageBoxW(L"FormatChanger2", L"Процесс завершён", L"ok", L"info", 0);
     return 0;
+}
+
+fs::path createOutputDirectory(fs::path result_dir, const fs::path& input)
+{
+    result_dir /= input.filename().stem();
+    return result_dir;
+}
+
+struct ReplaceInfo
+{
+    fs::path input;
+    fs::path output;
+    bool need_replace;
+};
+
+std::vector<ReplaceInfo> checkOutputDirectory(const std::vector<fs::path>& input, const std::vector<fs::path>& output)
+{
+    std::size_t n{output.size()};
+    std::vector<ReplaceInfo> result;
+    for (std::size_t i{0}; i < input.size(); ++i)
+        result.push_back({input[i], output[i], fs::exists(output.at(i))});
+    return result;
+}
+
+std::vector<std::pair<fs::path, fs::path>> createConversionList(const std::vector<ReplaceInfo>& replace_info, std::wostream& logger)
+{
+    enum class ReplacementPolicy
+    {
+        ReplaceAll,
+        NoReplace,
+        Undefined,
+    };
+    ReplacementPolicy replacement_policy{ReplacementPolicy::Undefined};
+    if (std::any_of(replace_info.begin(), replace_info.end(), [](const ReplaceInfo& info) { return info.need_replace; }))
+    {
+        int code{tinyfd_messageBoxW(
+                L"FormatChanger2",
+                L"Один или несколько файлов уже существуют в директории назначения.\n"
+                L"Хотите ли вы заменить их все?",
+                L"yesno",
+                L"question",
+                0
+        )};
+        if (code)
+            replacement_policy = ReplacementPolicy::ReplaceAll;
+        else
+        {
+            code = tinyfd_messageBoxW(
+                    L"FormatChanger",
+                    L"Хотите ли вы ничего не заменять?\nЕсли нет, то каждый случай будет рассмотрен отдельно.",
+                    L"yesno",
+                    L"question",
+                    0
+            );
+            if (code)
+                replacement_policy = ReplacementPolicy::NoReplace;
+        }
+    }
+    std::vector<std::pair<fs::path, fs::path>> result;
+    result.reserve(replace_info.size());
+    for (const auto& info : replace_info)
+    {
+        if (!info.need_replace)
+        {
+            result.emplace_back(info.input, info.output);
+            continue;
+        }
+        if (replacement_policy != ReplacementPolicy::Undefined)
+        {
+            if (ReplacementPolicy::ReplaceAll == replacement_policy)
+            {
+                logger << info.output << L" будет удалена вместе со всем содержимым" << std::endl;
+                result.emplace_back(info.input, info.output);
+            }
+            continue;
+        }
+        bool is_directory{fs::is_directory(info.output)};
+        std::wstring msg{is_directory ? L"Директория\n" : L"Файл\n"};
+        msg.append(info.output);
+        msg.append(L"\nуже существует. Хотите заменить ");
+        msg.append(is_directory ? L"её " : L"его ");
+        msg.append(L"со всем содержимым?");
+        int code{tinyfd_messageBoxW(
+                L"FormatChanger2",
+                msg.c_str(),
+                L"yesno",
+                L"question",
+                0
+        )};
+        if (code)
+        {
+            logger << info.output << L" будет удалена вместе со всем содержимым" << std::endl;
+            result.emplace_back(info.input, info.output);
+        }
+    }
+    return result;
 }
 
 }
@@ -288,9 +390,6 @@ int exitMessage()
 int main()
 {
     // setmode(U16TEXT)
-    //_setmode(_fileno(stdout), 0x00020000);
-    //std::locale cp1251("Russian_Russia.Cp1251");
-    //std::locale::global(cp1251);
     setlocale(LC_ALL, "");
     std::wofstream log_file;
     log_file.open(L"log.txt", std::ios::out);
@@ -298,26 +397,28 @@ int main()
     TeeStream log;
     log.addStream(log_stream).addStream(std::wcout);
 
-
     const auto input_files{getPathsFromDialog(getChooseMode(), fs::current_path())};
     if (input_files.empty())
     {
         log << "No files chosen" << std::endl;
         return exitMessage();
     }
-    //log.write("input directory: ", input_files.at(0).parent_path(), '\n');
     log << "input directory: " << input_files.at(0).parent_path() << std::endl;
     for (const auto& input_file : input_files)
         log << input_file.filename() << std::endl;
     const auto result_dir{getResultDirectory(input_files.at(0).parent_path())};
-    for (const auto& input_file : input_files)
+
+    std::vector<fs::path> output_directories(input_files.size());
+    for (std::size_t i{0}; i < input_files.size(); ++i)
+        output_directories[i] = createOutputDirectory(result_dir, input_files[i]);
+    auto conversion_info{createConversionList(checkOutputDirectory(input_files, output_directories), log)};
+
+    for (const auto& files : conversion_info)
     {
-        log << "processing file: " << input_file.filename() << std::endl;
+        log << "processing file: " << files.first.filename() << std::endl;
         try
         {
-            auto output_file{result_dir / input_file.filename()};
-            output_file.replace_extension(L".SMR");
-            transferChannels(input_file, output_file, log);
+            transferChannels(files.first, files.second, log);
         }
         catch (std::exception& ex)
         {
@@ -328,5 +429,5 @@ int main()
             log << "unknown error" << std::endl;
         }
     }
-    return exitMessage();
+    tinyfd_messageBoxW(L"FormatChanger2", L"Процесс завершён", L"ok", L"info", 0);
 }
