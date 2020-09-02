@@ -6,6 +6,9 @@
 #include <utils/logger.hpp>
 #include <utils/ostream_tee.hpp>
 
+#include <utils/streams/log_stream.hpp>
+#include <utils/streams/tee_stream.hpp>
+
 #include <filesystem>
 #include <iostream>
 #include <fstream>
@@ -136,10 +139,10 @@ Son32::Time convert(const ADIDatIO::Time& t)
     return {t.seconds, t.frac_seconds};
 }
 
-void transferChannels(const fs::path& input, const fs::path& output, IOutputStream& log)
+void transferChannels(const fs::path& input, const fs::path& output, std::wostream& log)
 {
-    log.write("transfer from:\n", input.wstring(), '\n');
-    log.write("transfer to:\n", output.wstring(), '\n');
+    log << "transfer from:\n" << input.wstring() << std::endl;
+    log << "transfer to:\n" << output.wstring() << std::endl;
     auto reader{ADIDatIO::FileReader::load(input)};
     const auto number_of_channels{reader->channelsInfo().size()};
 
@@ -163,7 +166,7 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
         channel_config.units = info.units;
         channel_config.name = info.name;
         channel_config.sample_period = info.records[0].sample_period;
-        log.write("calculating offset and scale for channel ", info.name, '\n');
+        log << "calculating offset and scale for channel " << info.name << std::endl;
         std::unique_ptr<IProgressBar> progress_bar{new ConsoleProgressBar(std::wcout)};
         channels[channel_id].setProgressBar(progress_bar.get());
         channel_config.calculateScaleInfo([&](std::vector<float>& buff) -> bool {
@@ -234,7 +237,7 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
         }
     };
 
-   log.write("transfer all channels from ", input.filename(), " to ", output.filename(), '\n');
+   log << "transfer all channels from " << input.filename() << " to " << output.filename() << std::endl;
 
     std::unique_ptr<IProgressBar> transfer_pb{new ConsoleProgressBar(std::wcout)};
 
@@ -269,7 +272,13 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
     }
     flush_file(true);
     reader->setProgressBar();
-    log.write("\nall channel successful transferred\n");
+    log << "\nall channel successful transferred" << std::endl;
+}
+
+int exitMessage()
+{
+    tinyfd_messageBoxW(L"FormatChanger2", L"Процесс завершён", L"ok", L"info", 0);
+    return 0;
 }
 
 }
@@ -279,26 +288,31 @@ void transferChannels(const fs::path& input, const fs::path& output, IOutputStre
 int main()
 {
     // setmode(U16TEXT)
-    _setmode(_fileno(stdout), 0x00020000);
-    std::wofstream fout("log.txt");
-    Logger log_file(&fout);
-    StdOutputStream out(&std::wcout);
-    OutputStreamTee log;
-    log.addStream(&log_file).addStream(&out);
+    //_setmode(_fileno(stdout), 0x00020000);
+    //std::locale cp1251("Russian_Russia.Cp1251");
+    //std::locale::global(cp1251);
+    setlocale(LC_ALL, "");
+    std::wofstream log_file;
+    log_file.open(L"log.txt", std::ios::out);
+    LogStream log_stream(log_file);
+    TeeStream log;
+    log.addStream(log_stream).addStream(std::wcout);
+
 
     const auto input_files{getPathsFromDialog(getChooseMode(), fs::current_path())};
     if (input_files.empty())
     {
-        log.write("No files chosen\n");
-        return 0;
+        log << "No files chosen" << std::endl;
+        return exitMessage();
     }
-    log.write("input directory: ", input_files.at(0).parent_path(), '\n');
+    //log.write("input directory: ", input_files.at(0).parent_path(), '\n');
+    log << "input directory: " << input_files.at(0).parent_path() << std::endl;
     for (const auto& input_file : input_files)
-        log.write(input_file.filename(), '\n');
+        log << input_file.filename() << std::endl;
     const auto result_dir{getResultDirectory(input_files.at(0).parent_path())};
     for (const auto& input_file : input_files)
     {
-        log.write("processing file: ", input_file.filename(), '\n');
+        log << "processing file: " << input_file.filename() << std::endl;
         try
         {
             auto output_file{result_dir / input_file.filename()};
@@ -307,12 +321,12 @@ int main()
         }
         catch (std::exception& ex)
         {
-            log.write("error:\n", ex.what(), '\n');
+            log << "error:\n" << ex.what() << std::endl;
         }
         catch (...)
         {
-            log.write("unknown error\n");
+            log << "unknown error" << std::endl;
         }
     }
-    tinyfd_messageBoxW(L"FormatChanger2", L"Процесс завершён", L"ok", L"info", 0);
+    return exitMessage();
 }
