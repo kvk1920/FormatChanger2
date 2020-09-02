@@ -2,12 +2,16 @@
 
 #include <chrono>
 
+#include <cstdio>
+#include <cstring>
+
 namespace kvk1920::utils
 {
 
 LogBuf::LogBuf(std::wstreambuf* buf)
 {
     buf_ = buf;
+    time_buff_.reserve(64);
 }
 
 int
@@ -29,6 +33,8 @@ LogBuf::xsputn(const char_type* s, std::streamsize n)
                 return 0;
         at_start_of_line_ = false;
         const wchar_t* nxt_pos{std::wmemchr(cur_pos, L'\n', rem)};
+        if (!nxt_pos)
+            nxt_pos = s + n;
         if (nxt_pos < s + n)
         {
             ++nxt_pos;
@@ -58,15 +64,12 @@ void
 getCurrentTime(std::wstring& buff)
 {
     auto now{std::chrono::system_clock::to_time_t(std::chrono::system_clock::now())};
-    auto local_time{*std::localtime(&now)};
-    std::size_t result_code{0};
-    while (!result_code)
-    {
-        buff.resize(std::max<std::size_t>(1, buff.size() * 2));
-        result_code = std::wcsftime(buff.data(), buff.size(),
-                      L"%F %T", &local_time);
-    }
-    buff.resize(result_code);
+    const char* result{std::ctime(&now)};
+    buff.assign(L"[ ");
+    buff.append(result, result + strlen(result));
+    if (L'\n' == buff.back())
+        buff.pop_back();
+    buff.append(L" ]\t");
 }
 
 }
