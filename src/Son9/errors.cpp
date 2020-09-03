@@ -4,7 +4,7 @@
 #include <extern/Son9/Son.h>
 #include <stdexcept>
 
-namespace Son32::detail
+namespace Son9::detail
 {
 
 [[noreturn]] void

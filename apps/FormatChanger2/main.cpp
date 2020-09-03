@@ -131,7 +131,7 @@ std::vector<std::size_t> determineChunkSize(const std::vector<ADIDatIO::ChannelR
 }
 
 inline
-Son32::Time convert(const ADIDatIO::Time& t)
+Son9::Time convert(const ADIDatIO::Time& t)
 {
     return {t.seconds, t.frac_seconds};
 }
@@ -161,12 +161,12 @@ void transferChannels(const fs::path& input_file, const fs::path& output_directo
 
     const auto chunk_sizes{determineChunkSize(channels)};
 
-    Son32::Config file_config;
+    Son9::Config file_config;
     file_config.start = convert(reader->fileStart());
     file_config.channels.resize(number_of_channels);
     for (std::size_t channel_id{0}; channel_id < number_of_channels; ++channel_id)
     {
-        Son32::ChannelConfig& channel_config{file_config.channels[channel_id]};
+        Son9::ChannelConfig& channel_config{file_config.channels[channel_id]};
         const auto& info{channels[channel_id].channelInfo()};
         channel_config.units = info.units;
         channel_config.name = info.name;
@@ -193,7 +193,7 @@ void transferChannels(const fs::path& input_file, const fs::path& output_directo
                        (input_file.filename().stem().wstring() + L"___" +
                         get_file_number() + input_file.filename().extension().wstring());
 
-    auto writer{Son32::FileWriter::create(file_config)};
+    auto writer{Son9::FileWriter::create(file_config)};
     bool done{false};
 
     const std::size_t size_limit{1024 * 1024 * 512};
@@ -206,7 +206,7 @@ void transferChannels(const fs::path& input_file, const fs::path& output_directo
             file_config.path = fs::current_path() /
                                (input_file.filename().stem().wstring() + L"___" +
                                 get_file_number() + input_file.filename().extension().wstring());
-            writer = Son32::FileWriter::create(file_config);
+            writer = Son9::FileWriter::create(file_config);
         }
     };
 

@@ -26,7 +26,7 @@ calculateOptimalUsPerTime(const std::vector<double>& sample_periods)
 
 }
 
-namespace Son32
+namespace Son9
 {
 using namespace detail;
 
