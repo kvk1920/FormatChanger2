@@ -2,7 +2,7 @@
 
 #include <streambuf>
 
-namespace kvk1920::utils
+namespace utils::streams
 {
 
 class LogBuf : public std::wstreambuf

@@ -215,7 +215,7 @@ FileReader::load(const fs::path &path)
 }
 
 void
-FileReader::setProgressBar(kvk1920::utils::IProgressBar* pb)
+FileReader::setProgressBar(utils::ui::IProgressBar* pb)
 {
     progress_bar_ = pb;
 }

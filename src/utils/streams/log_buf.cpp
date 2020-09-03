@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstring>
 
-namespace kvk1920::utils
+namespace utils::streams
 {
 
 LogBuf::LogBuf(std::wstreambuf* buf)

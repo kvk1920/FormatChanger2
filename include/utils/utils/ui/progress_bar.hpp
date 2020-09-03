@@ -2,7 +2,7 @@
 
 #include <memory>
 
-namespace kvk1920::utils
+namespace utils::ui
 {
 
 class IProgressBar

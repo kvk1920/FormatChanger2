@@ -1,6 +1,6 @@
 #include <utils/streams/tee_stream.hpp>
 
-namespace kvk1920::utils
+namespace utils::streams
 {
 
 TeeStream::TeeStream()

@@ -3,7 +3,7 @@
 #include <ostream>
 #include <vector>
 
-namespace kvk1920::utils
+namespace utils::streams
 {
 
 class TeeBuf final : public std::wstreambuf

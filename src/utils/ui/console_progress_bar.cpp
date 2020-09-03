@@ -1,8 +1,8 @@
-#include <utils/console_progress_bar.hpp>
+#include <utils/ui/console_progress_bar.hpp>
 
 #include <sstream>
 
-namespace kvk1920::utils
+namespace utils::ui
 {
 
 ConsoleProgressBar::ConsoleProgressBar(std::wostream* wout, std::function<std::wstring(int64_t, int64_t)> create_msg)

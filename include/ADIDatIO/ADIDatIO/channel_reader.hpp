@@ -3,7 +3,7 @@
 #pragma once
 
 #include <ADIDatIO/file_reader.hpp>
-#include <utils/progress_bar.hpp>
+#include <utils/ui/progress_bar.hpp>
 
 namespace ADIDatIO
 {
@@ -25,7 +25,7 @@ public:
     inline
     explicit ChannelReader(std::shared_ptr<FileReader> file_reader, std::size_t channel_id);
 
-    void setProgressBar(kvk1920::utils::IProgressBar* progress_bar = nullptr);
+    void setProgressBar(utils::ui::IProgressBar* progress_bar = nullptr);
 
 public:
     void loadSlice(std::vector<float>& buff,
@@ -58,7 +58,7 @@ private:
     std::shared_ptr<FileReader> file_reader_;
     std::size_t channel_id_;
     Position current_pos_;
-    kvk1920::utils::IProgressBar* progress_bar_{nullptr};
+    utils::ui::IProgressBar* progress_bar_{nullptr};
 };
 
 }

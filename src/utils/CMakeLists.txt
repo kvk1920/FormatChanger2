@@ -1,13 +1,13 @@
 set(UTILS_HEADERS
-		"${PROJECT_SOURCE_DIR}/include/utils/utils/progress_bar.hpp"
-		"${PROJECT_SOURCE_DIR}/include/utils/utils/console_progress_bar.hpp"
+		"${PROJECT_SOURCE_DIR}/include/utils/utils/ui/progress_bar.hpp"
+		"${PROJECT_SOURCE_DIR}/include/utils/utils/ui/console_progress_bar.hpp"
 		"${PROJECT_SOURCE_DIR}/include/utils/utils/streams/tee_buf.hpp"
 		"${PROJECT_SOURCE_DIR}/include/utils/utils/streams/tee_stream.hpp"
 		"${PROJECT_SOURCE_DIR}/include/utils/utils/streams/log_buf.hpp"
 		"${PROJECT_SOURCE_DIR}/include/utils/utils/streams/log_stream.hpp"
 		)
 set(UTILS_SOURCES
-		"${PROJECT_SOURCE_DIR}/src/utils/console_progress_bar.cpp"
+		"${PROJECT_SOURCE_DIR}/src/utils/ui/console_progress_bar.cpp"
 		"${PROJECT_SOURCE_DIR}/src/utils/streams/tee_buf.cpp"
 		"${PROJECT_SOURCE_DIR}/src/utils/streams/log_buf.cpp"
 		"${PROJECT_SOURCE_DIR}/src/utils/streams/log_stream.cpp"

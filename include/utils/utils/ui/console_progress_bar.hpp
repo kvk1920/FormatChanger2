@@ -1,11 +1,11 @@
 #pragma once
 
-#include <utils/progress_bar.hpp>
+#include <utils/ui/progress_bar.hpp>
 
 #include <ostream>
 #include <functional>
 
-namespace kvk1920::utils
+namespace utils::ui
 {
 
 class ConsoleProgressBar : public IProgressBar

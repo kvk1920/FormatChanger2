@@ -4,7 +4,7 @@
 
 #include <ostream>
 
-namespace kvk1920::utils
+namespace utils::streams
 {
 
 class LogStream : public std::wostream

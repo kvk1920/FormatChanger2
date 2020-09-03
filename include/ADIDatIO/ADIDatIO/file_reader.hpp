@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ADIDatIO/common.hpp>
-#include <utils/progress_bar.hpp>
+#include <utils/ui/progress_bar.hpp>
 #include <filesystem>
 
 namespace ADIDatIO
@@ -39,14 +39,14 @@ public:
     [[nodiscard]]
     Time fileStart() const;
 
-    void setProgressBar(kvk1920::utils::IProgressBar* pb = nullptr);
+    void setProgressBar(utils::ui::IProgressBar* pb = nullptr);
 
 private:
     void updateProgressBar(int64_t number_of_read_samples) const;
 
 private:
     std::unique_ptr<Impl> pimpl_;
-    kvk1920::utils::IProgressBar* progress_bar_{nullptr};
+    utils::ui::IProgressBar* progress_bar_{nullptr};
 };
 
 }

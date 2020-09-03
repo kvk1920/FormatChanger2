@@ -1,7 +1,7 @@
 #include <ADIDatIO/channel_reader.hpp>
 #include <Son9/file_writer.hpp>
 #include <tinyfiledialogs.h>
-#include <utils/console_progress_bar.hpp>
+#include <utils/ui/console_progress_bar.hpp>
 
 #include <utils/streams/log_stream.hpp>
 #include <utils/streams/tee_stream.hpp>
@@ -15,7 +15,8 @@
 
 namespace fs = std::filesystem;
 
-using namespace kvk1920::utils;
+using namespace utils::streams;
+using namespace utils::ui;
 
 namespace
 {
