@@ -1,5 +1,5 @@
 #include <ADIDatIO/file_reader.hpp>
-#include <ADIDatIO/errors.hpp>
+#include <errors.hpp>
 
 namespace ADIDatIO
 {
@@ -215,7 +215,7 @@ FileReader::load(const fs::path &path)
 }
 
 void
-FileReader::setProgressBar(kvk1920::utils::IProgressBar* pb)
+FileReader::setProgressBar(utils::ui::IProgressBar* pb)
 {
     progress_bar_ = pb;
 }

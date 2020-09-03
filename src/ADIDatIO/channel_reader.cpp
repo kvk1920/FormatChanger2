@@ -79,7 +79,7 @@ ChannelReader::refreshProgressBar() const
 }
 
 void
-ChannelReader::setProgressBar(kvk1920::utils::IProgressBar* progress_bar)
+ChannelReader::setProgressBar(utils::ui::IProgressBar* progress_bar)
 {
     progress_bar_ = progress_bar;
     if (progress_bar)

@@ -1,6 +1,6 @@
 #include <utils/streams/tee_buf.hpp>
 
-namespace kvk1920::utils
+namespace utils::streams
 {
 
 TeeBuf::int_type

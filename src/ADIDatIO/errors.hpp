@@ -2,7 +2,7 @@
 
 #include <ctime>
 
-#include <ADIDatCAPI_mex.h>
+#include <extern/ADIDatIO/ADIDatCAPI_mex.h>
 
 namespace ADIDatIO::detail
 {

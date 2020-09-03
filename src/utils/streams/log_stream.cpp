@@ -1,6 +1,6 @@
 #include <utils/streams/log_stream.hpp>
 
-namespace kvk1920::utils
+namespace utils::streams
 {
 
 LogStream::LogStream(std::wstreambuf* buff)
