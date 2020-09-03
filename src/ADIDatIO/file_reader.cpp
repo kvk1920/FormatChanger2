@@ -1,5 +1,5 @@
 #include <ADIDatIO/file_reader.hpp>
-#include <ADIDatIO/errors.hpp>
+#include <errors.hpp>
 
 namespace ADIDatIO
 {
