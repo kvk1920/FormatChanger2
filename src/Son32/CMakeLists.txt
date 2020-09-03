@@ -11,4 +11,4 @@ set(ADIDatIO_SOURCES
 add_library(Son32_facade STATIC ${ADIDatIO_SOURCES} ${ADIDatIO_HEADERS})
 target_include_directories(Son32_facade PUBLIC "${PROJECT_SOURCE_DIR}/include/")
 target_include_directories(Son32_facade PRIVATE "${PROJECT_SOURCE_DIR}/src/")
-target_link_libraries(Son32_facade PRIVATE Son32)
+target_link_libraries(Son32_facade PRIVATE Son9)

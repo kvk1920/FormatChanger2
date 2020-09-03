@@ -1,3 +1,3 @@
 add_subdirectory(ADIDatIO)
-add_subdirectory(Son32)
+add_subdirectory(Son9)
 add_subdirectory(tinyfiledialogs)
