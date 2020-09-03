@@ -1,5 +1,5 @@
 #include <time.h>
-#include <ADIDatCAPI_mex.h>
+#include <extern/ADIDatIO/ADIDatCAPI_mex.h>
 
 #include <windows.h>
 #include <Son.h>
