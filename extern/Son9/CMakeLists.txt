@@ -4,4 +4,4 @@ set_target_properties(externLibSon9 PROPERTIES
         IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/son32.dll"
         IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/son32.lib"
 )
-file(COPY son32.dll DESTINATION "${PROJECT_BINARY_DIR}/apps/")
+file(COPY son32.dll DESTINATION "${CMAKE_SOURCE_DIR}/bin/")
