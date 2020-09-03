@@ -16,7 +16,7 @@
 */
 
 #ifndef __SON__
-#include "son.h"
+#include "Son.h"
 #endif
 
 #ifndef __SONINTL__

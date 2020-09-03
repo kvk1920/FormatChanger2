@@ -1,7 +1,7 @@
 #include <Son32/errors.hpp>
 #include <ctime>
 #include <windows.h>
-#include <Son.h>
+#include <extern/Son9/Son.h>
 #include <stdexcept>
 
 namespace Son32::detail

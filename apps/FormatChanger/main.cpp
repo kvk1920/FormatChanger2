@@ -2,7 +2,7 @@
 #include <extern/ADIDatIO/ADIDatCAPI_mex.h>
 
 #include <windows.h>
-#include <Son.h>
+#include <extern/Son9/Son.h>
 
 extern "C" {
 #include <tinyfiledialogs.h>

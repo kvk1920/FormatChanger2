@@ -30,7 +30,7 @@
 // header (two lines up) and then linking to a library built without it will not do what
 // you intend.
 
-#include "machine.h"
+#include "MACHINE.H"
 
 #ifdef _IS_WINDOWS_
 #define SONAPI(type) type WINAPI

@@ -4,7 +4,7 @@
 
 #include <windows.h>
 #include <ctime>
-#include <Son.h>
+#include <extern/Son9/Son.h>
 
 #include <cmath>
 #include <numeric>
