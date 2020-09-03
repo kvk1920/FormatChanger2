@@ -1,5 +1,5 @@
-add_library(Son9 SHARED IMPORTED GLOBAL)
-set_target_properties(Son9 PROPERTIES
+add_library(externLibSon9 SHARED IMPORTED GLOBAL)
+set_target_properties(externLibSon9 PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/include/"
         IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/son32.dll"
         IMPORTED_IMPLIB "${CMAKE_CURRENT_SOURCE_DIR}/son32.lib"
