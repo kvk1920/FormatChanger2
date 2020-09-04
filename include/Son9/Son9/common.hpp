@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ctime>
+
 namespace Son9
 {
 

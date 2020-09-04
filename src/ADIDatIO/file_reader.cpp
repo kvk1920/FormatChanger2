@@ -145,7 +145,7 @@ FileReader::Impl::fileStart() const
 }
 
 void
-FileReader::Impl::loadSlice(std::vector<float> &buff, std::size_t channel_id, std::size_t record_id,
+FileReader::Impl::loadSlice(std::vector<float>& buff, std::size_t channel_id, std::size_t record_id,
                             std::size_t start_pos, std::size_t finish_pos) const
 {
     if (const auto number_of_samples{channels_.at(channel_id).records.at(record_id).number_of_samples};
