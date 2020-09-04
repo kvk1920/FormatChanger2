@@ -23,6 +23,9 @@
 #ifndef __SON__
 #define __SON__
 
+/** kvk1920: include WINDOWS.H**/
+#include <windows.h>
+
 // Define NOBIGFILES to remove big file support. If you do this, the library will
 // not open or create big files. Uncomment the next line to remove big file support.
 // #define NOBIGFILES.
