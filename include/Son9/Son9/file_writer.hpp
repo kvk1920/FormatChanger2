@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Son9/common.hpp>
+
 #include <filesystem>
 
 namespace Son9
@@ -18,12 +20,6 @@ struct ChannelConfig
     void calculateScaleInfo(const std::function<bool(std::vector<float>&)>& get_data);
 };
 
-struct Time
-{
-    std::time_t seconds;
-    double frac_seconds;
-};
-
 
 struct Config
 {
@@ -34,14 +30,6 @@ struct Config
 
 class FileWriter
 {
-public:
-
-    struct OffsetScale
-    {
-        float offset;
-        float scale;
-    };
-
 private:
     explicit FileWriter(const Config& config);
 
@@ -60,15 +48,16 @@ public:
 
     static std::unique_ptr<FileWriter> create(const Config& config);
 
+    [[nodiscard]]
     std::string path() const { return path_; }
 
 protected:
-    static OffsetScale calculateOffsetScale(float min_value, float max_value);
+    static ADC::OffsetScale calculateOffsetScale(float min_value, float max_value);
 
 private:
     short handle_;
     std::vector<std::size_t> write_pos_;
-    std::vector<OffsetScale> offset_scale_;
+    std::vector<ADC::OffsetScale> offset_scale_;
     long us_per_time_;
     Time start_;
     std::string path_;

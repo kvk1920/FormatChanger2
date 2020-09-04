@@ -30,7 +30,7 @@ namespace Son9
 {
 using namespace detail;
 
-FileWriter::OffsetScale
+ADC::OffsetScale
 FileWriter::calculateOffsetScale(float min_value, float max_value)
 {
     /*
@@ -39,7 +39,7 @@ FileWriter::calculateOffsetScale(float min_value, float max_value)
      * 2^16 = real * 6553.6 / scale
      * 2^13 >= real * 6553.6 / scale
      */
-    OffsetScale result{0, 1};
+    ADC::OffsetScale result{0, 1};
     double value{std::max(std::abs(min_value), std::abs(max_value))};
     while ((1u << 13u) < value * 6553.6 / result.scale)
         result.scale *= 2;
@@ -74,7 +74,6 @@ getPrefix(const std::string& str, std::size_t length)
 FileWriter::FileWriter(const Config& config)
 {
     path_ = wstringToString(config.path.wstring());
-    //std::cout << "path_ = " << path_ << std::endl;
     handle_ = SONCreateFile(path_.c_str(), config.channels.size(), 0);
     start_ = config.start;
     checkException(handle_);
