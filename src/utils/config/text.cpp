@@ -23,6 +23,7 @@ Text::load(std::wistream& in)
         value.push_back(c);
     }
     while (c != L'"');
+    value.pop_back();
     value_ = std::move(value);
 }
 
@@ -31,6 +32,12 @@ Text::save(std::wostream& out) const
 {
     out.put(L'"') << get<std::wstring>();
     out.put(L'"');
+}
+
+void
+Text::setString(std::wstring value)
+{
+    IVar::set(value);
 }
 
 }

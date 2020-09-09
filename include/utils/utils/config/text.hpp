@@ -12,6 +12,8 @@ public:
 
     void load(std::wistream& in) final;
     void save(std::wostream& out) const final;
+
+    void setString(std::wstring value);
 };
 
 }

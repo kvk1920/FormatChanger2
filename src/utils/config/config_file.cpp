@@ -70,7 +70,7 @@ ConfigFile::saveFile() const
         fout << name.c_str() << '=';
         var->save(fout);
     }
-    fout.close();
+    fout.flush();
     return *this;
 }
 

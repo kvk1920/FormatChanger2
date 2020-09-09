@@ -31,7 +31,6 @@ public:
 
     [[nodiscard]] bool hasValue() const;
     [[nodiscard]] bool isEmpty() const;
-
 protected:
     std::string name_;
     std::any value_;
