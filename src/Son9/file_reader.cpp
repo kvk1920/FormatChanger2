@@ -9,6 +9,23 @@ namespace Son9
 
 using detail::checkException;
 
+const char* channelTypeToString(ChannelType type)
+{
+    static const char* const strings[] = {
+            "None",
+            "ADC",
+            "EventFall",
+            "EventRise",
+            "EventBoth",
+            "Marker",
+            "ADCMark",
+            "RealMark",
+            "TextMark",
+            "RealWave",
+    };
+    return strings[static_cast<int>(type)];
+}
+
 double
 FileInfo::secondsPerTime() const
 {
@@ -85,6 +102,7 @@ FileReader::loadEventTimes(std::size_t channel_id, std::vector<long>& buff)
         read_cnt = SONGetEventData(handle_, channel_id, buff.data() + old_size, BLOCK_SIZE,
                                    first_time, last_time, &unused, nullptr);
         buff.resize(old_size + read_cnt);
+        first_time = buff.back() + 1;
     }
     while (read_cnt);
 }

@@ -14,7 +14,7 @@ namespace fs = std::filesystem;
 
 enum class ChannelType : int
 {
-    None,
+    None = 0,
     ADC,
     EventFall,
     EventRise,
@@ -25,6 +25,8 @@ enum class ChannelType : int
     TextMark,
     RealWave,
 };
+
+const char* channelTypeToString(ChannelType type);
 
 struct ChannelInfo
 {
