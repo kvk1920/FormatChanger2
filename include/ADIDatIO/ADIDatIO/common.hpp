@@ -3,6 +3,7 @@
 #include <cmath>
 #include <ctime>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace ADIDatIO
