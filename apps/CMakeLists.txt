@@ -1,3 +1,4 @@
 add_subdirectory(FormatChanger)
 add_subdirectory(FormatChanger2)
 add_subdirectory(ChannelExtractor)
+add_subdirectory(DirectoryWalker)
