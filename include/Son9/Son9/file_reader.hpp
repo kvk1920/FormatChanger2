@@ -48,7 +48,7 @@ struct FileInfo
 };
 
 
-class [[deprecated("untested")]] FileReader : public std::enable_shared_from_this<FileReader>
+class FileReader : public std::enable_shared_from_this<FileReader>
 {
 private:
     struct MakeSharedEnabler;
