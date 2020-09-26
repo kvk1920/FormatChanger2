@@ -107,6 +107,27 @@ FileReader::loadEventTimes(std::size_t channel_id, std::vector<long>& buff)
     while (read_cnt);
 }
 
+void
+FileReader::loadRealWaveData(std::size_t channel_id, std::vector<float> &buff)
+{
+    int first_time{0};
+    const int last_time{SONMaxTime(handle_)};
+    int read_cnt;
+    long block_start;
+    do
+    {
+        const auto old_size(buff.size());
+        if (first_time > last_time)
+            break;
+        buff.resize(old_size + BLOCK_SIZE);
+        read_cnt = SONGetRealData(handle_, channel_id, buff.data() + old_size, BLOCK_SIZE,
+                                  first_time, last_time, &block_start, nullptr);
+        buff.resize(old_size + read_cnt);
+        first_time = block_start + read_cnt;
+    }
+    while (read_cnt);
+}
+
 FileReader::FileReader(const fs::path& path)
 {
     handle_ = SONOpenOldFile(path.string().c_str(), 1);

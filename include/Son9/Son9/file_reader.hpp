@@ -48,7 +48,7 @@ struct FileInfo
 };
 
 
-class [[deprecated("untested")]] FileReader : public std::enable_shared_from_this<FileReader>
+class FileReader : public std::enable_shared_from_this<FileReader>
 {
 private:
     struct MakeSharedEnabler;
@@ -60,6 +60,7 @@ public:
     const FileInfo& fileInfo() const { return info_; }
 
     void loadEventTimes(std::size_t channel_id, std::vector<long>& buff);
+    void loadRealWaveData(std::size_t channel_id, std::vector<float>& buff);
 private:
     void loadChannelName(ChannelInfo& info, int channel_id);
     void loadChannelType(ChannelInfo& info, int channel_id);
