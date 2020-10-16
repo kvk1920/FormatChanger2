@@ -1,0 +1,8 @@
+//
+// Created by kvk19 on 26.09.2020.
+//
+
+#ifndef FORMATCHANGER2_SPEARMAN_R_H
+#define FORMATCHANGER2_SPEARMAN_R_H
+
+#endif //FORMATCHANGER2_SPEARMAN_R_H
