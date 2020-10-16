@@ -1,0 +1,2 @@
+add_executable(ApnoeDetector main.cpp)
+target_link_libraries(ApnoeDetector PRIVATE imgui)
